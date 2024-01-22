@@ -1,0 +1,2 @@
+drop_foreign_key("replies", "replies_users_id_fk", {})
+drop_foreign_key("replies", "replies_comments_id_fk", {})
