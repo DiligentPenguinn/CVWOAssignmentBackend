@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-type Comment struct {
+type Reply struct {
 	ID        int       `json:"id"`
 	ParentID  int       `json:"parent_id"`
 	UserID    int       `json:"user_id"`

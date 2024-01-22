@@ -1,2 +1,2 @@
-drop_foreign_key("comments", "comments_threads_id_fk")
+drop_foreign_key("comments", "comments_threads_id_fk", {})
 drop_foreign_key("comments", "comments_users_id_fk", {})

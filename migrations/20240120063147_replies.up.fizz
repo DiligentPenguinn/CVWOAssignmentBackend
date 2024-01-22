@@ -2,5 +2,5 @@ create_table("replies") {
   t.Column("id", "integer", {primary: true})
   t.Column("body", "string", {})
   t.Column("user_id", "integer", {})
-  t.Column("comment_id", "integer", {})
+  t.Column("parent_id", "integer", {})
 }

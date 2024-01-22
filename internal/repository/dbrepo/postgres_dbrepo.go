@@ -23,7 +23,7 @@ func (m *PostgresDBRepo) AllThreads() ([]*models.Thread, error) {
 
 	query := `
 		select 
-			id, user_id, title, body
+			id, user_id, title, body,
 			created_at, updated_at
 		from
 			threads`
@@ -52,4 +52,71 @@ func (m *PostgresDBRepo) AllThreads() ([]*models.Thread, error) {
 		threads = append(threads, &thread)
 	}
 	return threads, nil
+}
+
+func (m *PostgresDBRepo) AllThreadsWithUsers() ([]*models.Thread, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		select 
+			id, user_id, title, body,
+			created_at, updated_at
+		from
+			threads`
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var threads []*models.Thread
+
+	for rows.Next() {
+		var thread models.Thread
+		err := rows.Scan(
+			&thread.ID,
+			&thread.User_ID,
+			&thread.Title,
+			&thread.Body,
+			&thread.CreatedAT,
+			&thread.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		threads = append(threads, &thread)
+	}
+	return threads, nil
+}
+
+func (m *PostgresDBRepo) SingleThread(id int) (*models.Thread, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+	select 
+		id, user_id, title, body, updated_at
+	from 
+		threads 
+	where id = $1`
+
+	row := m.DB.QueryRowContext(ctx, query, id)
+
+	var thread models.Thread
+
+	err := row.Scan(
+		&thread.ID,
+		&thread.User_ID,
+		&thread.Title,
+		&thread.Body,
+		&thread.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &thread, err
 }

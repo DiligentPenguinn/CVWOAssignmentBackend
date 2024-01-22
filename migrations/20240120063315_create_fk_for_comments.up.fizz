@@ -3,7 +3,7 @@ add_foreign_key("comments", "user_id", {"users":["id"]}, {
   "on_update": "cascade",
 })
 
-add_foreign_key("comments", "thread_id", {"threads":["id"]}, {
+add_foreign_key("comments", "parent_id", {"threads":["id"]}, {
   "on_delete": "cascade",
   "on_update": "cascade",
 })

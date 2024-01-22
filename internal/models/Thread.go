@@ -8,5 +8,5 @@ type Thread struct {
 	Title     string    `json:"title"`
 	Body      string    `json:"body"`
 	CreatedAT time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

@@ -28,7 +28,6 @@ CREATE TABLE public.comments (
     id integer NOT NULL,
     body character varying(255) NOT NULL,
     user_id integer NOT NULL,
-    thread_id integer NOT NULL,
     parent_id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -67,7 +66,7 @@ CREATE TABLE public.replies (
     id integer NOT NULL,
     body character varying(255) NOT NULL,
     user_id integer NOT NULL,
-    comment_id integer NOT NULL,
+    parent_id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -155,6 +154,7 @@ CREATE TABLE public.users (
     email character varying(255) NOT NULL,
     first_name character varying(255) DEFAULT ''::character varying NOT NULL,
     last_name character varying(255) DEFAULT ''::character varying NOT NULL,
+    username character varying(255) NOT NULL,
     password character varying(60) NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -272,7 +272,7 @@ CREATE UNIQUE INDEX users_email_idx ON public.users USING btree (email);
 --
 
 ALTER TABLE ONLY public.comments
-    ADD CONSTRAINT comments_threads_id_fk FOREIGN KEY (thread_id) REFERENCES public.threads(id) ON UPDATE CASCADE ON DELETE CASCADE;
+    ADD CONSTRAINT comments_threads_id_fk FOREIGN KEY (parent_id) REFERENCES public.threads(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -288,7 +288,7 @@ ALTER TABLE ONLY public.comments
 --
 
 ALTER TABLE ONLY public.replies
-    ADD CONSTRAINT replies_comments_id_fk FOREIGN KEY (comment_id) REFERENCES public.comments(id) ON UPDATE CASCADE ON DELETE CASCADE;
+    ADD CONSTRAINT replies_comments_id_fk FOREIGN KEY (parent_id) REFERENCES public.comments(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --

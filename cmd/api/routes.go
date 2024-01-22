@@ -12,5 +12,10 @@ func (app *application) routes() http.Handler {
 
 	mux.Use(middleware.Recoverer)
 	mux.Use(app.enableCORS)
+
+	mux.Get("/", app.Home)
+	mux.Get("/threads", app.AllThreads)
+	mux.Get("/thread/{id}", app.GetThread)
+
 	return mux
 }
