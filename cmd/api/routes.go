@@ -16,6 +16,7 @@ func (app *application) routes() http.Handler {
 	mux.Get("/", app.Home)
 	mux.Get("/threads", app.AllThreads)
 	mux.Get("/thread/{id}", app.GetThread)
+	mux.Get("/thread/{id}/comments", app.GetComments)
 
 	return mux
 }

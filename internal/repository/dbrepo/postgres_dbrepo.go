@@ -120,3 +120,42 @@ func (m *PostgresDBRepo) SingleThread(id int) (*models.Thread, error) {
 
 	return &thread, err
 }
+
+func (m *PostgresDBRepo) GetCommentsByThreadID(id int) ([]*models.Comment, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		select 
+			id, user_id, body, parent_id,
+			created_at, updated_at
+		from
+			comments
+		where
+			parent_id = $1`
+
+	rows, err := m.DB.QueryContext(ctx, query, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var comments []*models.Comment
+
+	for rows.Next() {
+		var comment models.Comment
+		err := rows.Scan(
+			&comment.ID,
+			&comment.UserID,
+			&comment.Body,
+			&comment.ParentID,
+			&comment.CreatedAT,
+			&comment.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		comments = append(comments, &comment)
+	}
+	return comments, nil
+}

@@ -33,17 +33,34 @@ func (app *application) AllThreads(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) GetThread(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	movieID, err := strconv.Atoi(id)
+	threadID, err := strconv.Atoi(id)
 	if err != nil {
 		app.errorJSON(w, err)
 		return
 	}
 
-	movie, err := app.DB.SingleThread(movieID)
+	thread, err := app.DB.SingleThread(threadID)
 	if err != nil {
 		app.errorJSON(w, err)
 		return
 	}
 
-	_ = app.writeJSON(w, http.StatusOK, movie)
+	_ = app.writeJSON(w, http.StatusOK, thread)
+}
+
+func (app *application) GetComments(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	threadID, err := strconv.Atoi(id)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	thread, err := app.DB.GetCommentsByThreadID(threadID)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, thread)
 }
