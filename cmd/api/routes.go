@@ -17,6 +17,9 @@ func (app *application) routes() http.Handler {
 	mux.Get("/threads", app.AllThreads)
 	mux.Get("/thread/{id}", app.GetThread)
 	mux.Get("/thread/{id}/comments", app.GetComments)
+	mux.Post("/authenticate", app.authenticate)
 
+	mux.Get("/refresh", app.refreshToken)
+	mux.Get("/logout", app.logout)
 	return mux
 }

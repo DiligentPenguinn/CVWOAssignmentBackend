@@ -10,4 +10,6 @@ type DatabaseRepo interface {
 	AllThreads() ([]*models.Thread, error)
 	SingleThread(id int) (*models.Thread, error)
 	GetCommentsByThreadID(id int) ([]*models.Comment, error)
+	GetUserByID(id int) (*models.User, error)
+	GetUserByUsername(username string) (*models.User, error)
 }

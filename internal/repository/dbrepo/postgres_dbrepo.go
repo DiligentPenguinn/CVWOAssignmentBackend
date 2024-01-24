@@ -149,7 +149,7 @@ func (m *PostgresDBRepo) GetCommentsByThreadID(id int) ([]*models.Comment, error
 			&comment.UserID,
 			&comment.Body,
 			&comment.ParentID,
-			&comment.CreatedAT,
+			&comment.CreatedAt,
 			&comment.UpdatedAt)
 		if err != nil {
 			return nil, err
@@ -158,4 +158,61 @@ func (m *PostgresDBRepo) GetCommentsByThreadID(id int) ([]*models.Comment, error
 		comments = append(comments, &comment)
 	}
 	return comments, nil
+}
+
+func (m *PostgresDBRepo) GetUserByUsername(username string) (*models.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `select id, first_name, last_name, username, email, password,
+			created_at, updated_at from users where username = $1`
+
+	var user models.User
+	row := m.DB.QueryRowContext(ctx, query, username)
+
+	err := row.Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+// GetUserByID returns one use, by ID.
+func (m *PostgresDBRepo) GetUserByID(id int) (*models.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `select id, first_name, last_name, username, email, password,
+			created_at, updated_at from users where id = $1`
+
+	var user models.User
+	row := m.DB.QueryRowContext(ctx, query, id)
+
+	err := row.Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
