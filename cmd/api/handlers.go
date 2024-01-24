@@ -1,9 +1,11 @@
 package main
 
 import (
+	"backend/internal/models"
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
@@ -167,4 +169,100 @@ func (app *application) GetComments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, thread)
+}
+
+func (app *application) InsertThread(w http.ResponseWriter, r *http.Request) {
+	_, claims, err := app.auth.GetTokenFromHeaderAndVerify(w, r)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	userID, err := strconv.Atoi(claims.Subject)
+	if err != nil {
+		app.errorJSON(w, errors.New("unknown user"), http.StatusUnauthorized)
+		return
+	}
+
+	var thread models.Thread
+
+	err = app.readJSON(w, r, &thread)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	thread.UserID = userID
+	thread.CreatedAt = time.Now()
+	thread.UpdatedAt = time.Now()
+
+	_, err = app.DB.InsertThread(thread)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+}
+
+func (app *application) InsertComment(w http.ResponseWriter, r *http.Request) {
+	_, claims, err := app.auth.GetTokenFromHeaderAndVerify(w, r)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	userID, err := strconv.Atoi(claims.Subject)
+	if err != nil {
+		app.errorJSON(w, errors.New("unknown user"), http.StatusUnauthorized)
+		return
+	}
+
+	var comment models.Comment
+
+	err = app.readJSON(w, r, &comment)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	comment.UserID = userID
+	comment.CreatedAt = time.Now()
+	comment.UpdatedAt = time.Now()
+
+	_, err = app.DB.InsertComment(comment)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+}
+
+func (app *application) InsertReply(w http.ResponseWriter, r *http.Request) {
+	_, claims, err := app.auth.GetTokenFromHeaderAndVerify(w, r)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	userID, err := strconv.Atoi(claims.Subject)
+	if err != nil {
+		app.errorJSON(w, errors.New("unknown user"), http.StatusUnauthorized)
+		return
+	}
+
+	var reply models.Reply
+
+	err = app.readJSON(w, r, &reply)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	reply.UserID = userID
+	reply.CreatedAt = time.Now()
+	reply.UpdatedAt = time.Now()
+
+	_, err = app.DB.InsertReply(reply)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
 }

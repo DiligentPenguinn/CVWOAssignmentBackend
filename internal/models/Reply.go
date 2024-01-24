@@ -7,6 +7,6 @@ type Reply struct {
 	ParentID  int       `json:"parent_id"`
 	UserID    int       `json:"user_id"`
 	Body      string    `json:"body"`
-	CreatedAT time.Time `json:"-"`
+	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
 }

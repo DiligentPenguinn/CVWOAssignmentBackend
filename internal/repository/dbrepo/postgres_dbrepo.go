@@ -40,10 +40,10 @@ func (m *PostgresDBRepo) AllThreads() ([]*models.Thread, error) {
 		var thread models.Thread
 		err := rows.Scan(
 			&thread.ID,
-			&thread.User_ID,
+			&thread.UserID,
 			&thread.Title,
 			&thread.Body,
-			&thread.CreatedAT,
+			&thread.CreatedAt,
 			&thread.UpdatedAt)
 		if err != nil {
 			return nil, err
@@ -77,10 +77,10 @@ func (m *PostgresDBRepo) AllThreadsWithUsers() ([]*models.Thread, error) {
 		var thread models.Thread
 		err := rows.Scan(
 			&thread.ID,
-			&thread.User_ID,
+			&thread.UserID,
 			&thread.Title,
 			&thread.Body,
-			&thread.CreatedAT,
+			&thread.CreatedAt,
 			&thread.UpdatedAt)
 		if err != nil {
 			return nil, err
@@ -108,7 +108,7 @@ func (m *PostgresDBRepo) SingleThread(id int) (*models.Thread, error) {
 
 	err := row.Scan(
 		&thread.ID,
-		&thread.User_ID,
+		&thread.UserID,
 		&thread.Title,
 		&thread.Body,
 		&thread.UpdatedAt,
@@ -215,4 +215,76 @@ func (m *PostgresDBRepo) GetUserByID(id int) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+
+func (m *PostgresDBRepo) InsertThread(thread models.Thread) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `insert into threads (user_id, title, body, created_at, updated_at)
+			values ($1, $2, $3, $4, $5) returning id`
+
+	var newID int
+
+	err := m.DB.QueryRowContext(ctx, stmt,
+		thread.UserID,
+		thread.Title,
+		thread.Body,
+		thread.CreatedAt,
+		thread.UpdatedAt,
+	).Scan(&newID)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return newID, nil
+}
+
+func (m *PostgresDBRepo) InsertComment(comment models.Comment) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `insert into comments (parent_id, user_id, body, created_at, updated_at)
+			values ($1, $2, $3, $4, $5)`
+
+	var newID int
+
+	err := m.DB.QueryRowContext(ctx, stmt,
+		comment.ParentID,
+		comment.UserID,
+		comment.Body,
+		comment.CreatedAt,
+		comment.UpdatedAt,
+	).Scan(&newID)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return newID, nil
+}
+
+func (m *PostgresDBRepo) InsertReply(reply models.Reply) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `insert into replies (parent_id, user_id, body, created_at, updated_at)
+			values ($1, $2, $3, $4, $5)`
+
+	var newID int
+
+	err := m.DB.QueryRowContext(ctx, stmt,
+		reply.ParentID,
+		reply.UserID,
+		reply.Body,
+		reply.CreatedAt,
+		reply.UpdatedAt,
+	).Scan(&newID)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return newID, nil
 }
