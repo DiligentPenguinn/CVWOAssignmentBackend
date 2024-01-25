@@ -17,13 +17,19 @@ func (app *application) routes() http.Handler {
 	mux.Get("/threads", app.AllThreads)
 	mux.Get("/thread/{id}", app.GetThread)
 	mux.Get("/thread/{id}/comments", app.GetComments)
+	mux.Get("/comment/{id}/replies", app.GetReplies)
 	mux.Post("/authenticate", app.authenticate)
 
 	mux.Get("/refresh", app.refreshToken)
 	mux.Get("/logout", app.logout)
+	mux.Put("/signup", app.registerUser)
 
 	mux.Route("/create", func(mux chi.Router) {
 		mux.Use(app.authRequired)
+
+		mux.Put("/thread", app.InsertThread)
+		mux.Put("/comment", app.InsertComment)
+		mux.Put("/reply", app.InsertReply)
 	})
 
 	return mux

@@ -32,3 +32,12 @@ func (u *User) PasswordMatches(plainText string) (bool, error) {
 
 	return true, nil
 }
+
+func (u *User) HashPassword() error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), 12)
+	if err != nil {
+		return err
+	}
+	u.Password = string(hashedPassword)
+	return nil
+}

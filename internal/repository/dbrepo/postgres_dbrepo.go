@@ -160,6 +160,45 @@ func (m *PostgresDBRepo) GetCommentsByThreadID(id int) ([]*models.Comment, error
 	return comments, nil
 }
 
+func (m *PostgresDBRepo) GetRepliesByCommentID(id int) ([]*models.Reply, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		select 
+			id, user_id, body, parent_id,
+			created_at, updated_at
+		from
+			replies
+		where
+			parent_id = $1`
+
+	rows, err := m.DB.QueryContext(ctx, query, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var replies []*models.Reply
+
+	for rows.Next() {
+		var reply models.Reply
+		err := rows.Scan(
+			&reply.ID,
+			&reply.UserID,
+			&reply.Body,
+			&reply.ParentID,
+			&reply.CreatedAt,
+			&reply.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		replies = append(replies, &reply)
+	}
+	return replies, nil
+}
+
 func (m *PostgresDBRepo) GetUserByUsername(username string) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -241,50 +280,71 @@ func (m *PostgresDBRepo) InsertThread(thread models.Thread) (int, error) {
 	return newID, nil
 }
 
-func (m *PostgresDBRepo) InsertComment(comment models.Comment) (int, error) {
+func (m *PostgresDBRepo) InsertComment(comment models.Comment) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	stmt := `insert into comments (parent_id, user_id, body, created_at, updated_at)
 			values ($1, $2, $3, $4, $5)`
 
-	var newID int
-
-	err := m.DB.QueryRowContext(ctx, stmt,
+	_, err := m.DB.ExecContext(ctx, stmt,
 		comment.ParentID,
 		comment.UserID,
 		comment.Body,
 		comment.CreatedAt,
 		comment.UpdatedAt,
-	).Scan(&newID)
+	)
 
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	return newID, nil
+	return nil
 }
 
-func (m *PostgresDBRepo) InsertReply(reply models.Reply) (int, error) {
+func (m *PostgresDBRepo) InsertReply(reply models.Reply) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	stmt := `insert into replies (parent_id, user_id, body, created_at, updated_at)
 			values ($1, $2, $3, $4, $5)`
 
-	var newID int
-
-	err := m.DB.QueryRowContext(ctx, stmt,
+	_, err := m.DB.ExecContext(ctx, stmt,
 		reply.ParentID,
 		reply.UserID,
 		reply.Body,
 		reply.CreatedAt,
 		reply.UpdatedAt,
-	).Scan(&newID)
+	)
 
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	return newID, nil
+	return nil
+}
+
+func (m *PostgresDBRepo) InsertUser(user models.User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `insert into users (first_name, last_name, username, 
+			email, password, created_at, updated_at)
+			values ($1, $2, $3, $4, $5, $6, $7)`
+
+	_, err := m.DB.ExecContext(ctx, stmt,
+		user.FirstName,
+		user.LastName,
+		user.Username,
+		user.Email,
+		user.Password,
+		user.CreatedAt,
+		user.UpdatedAt,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

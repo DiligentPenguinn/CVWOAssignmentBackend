@@ -162,15 +162,31 @@ func (app *application) GetComments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	thread, err := app.DB.GetCommentsByThreadID(threadID)
+	comments, err := app.DB.GetCommentsByThreadID(threadID)
 	if err != nil {
 		app.errorJSON(w, err)
 		return
 	}
 
-	_ = app.writeJSON(w, http.StatusOK, thread)
+	_ = app.writeJSON(w, http.StatusOK, comments)
 }
 
+func (app *application) GetReplies(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	commentID, err := strconv.Atoi(id)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	replies, err := app.DB.GetRepliesByCommentID(commentID)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, replies)
+}
 func (app *application) InsertThread(w http.ResponseWriter, r *http.Request) {
 	_, claims, err := app.auth.GetTokenFromHeaderAndVerify(w, r)
 	if err != nil {
@@ -201,6 +217,12 @@ func (app *application) InsertThread(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	resp := JSONResponse{
+		Error:   false,
+		Message: "thread inserted",
+	}
+
+	app.writeJSON(w, http.StatusAccepted, resp)
 }
 
 func (app *application) InsertComment(w http.ResponseWriter, r *http.Request) {
@@ -227,12 +249,18 @@ func (app *application) InsertComment(w http.ResponseWriter, r *http.Request) {
 	comment.CreatedAt = time.Now()
 	comment.UpdatedAt = time.Now()
 
-	_, err = app.DB.InsertComment(comment)
+	err = app.DB.InsertComment(comment)
 	if err != nil {
 		app.errorJSON(w, err)
 		return
 	}
 
+	resp := JSONResponse{
+		Error:   false,
+		Message: "comment inserted",
+	}
+
+	app.writeJSON(w, http.StatusAccepted, resp)
 }
 
 func (app *application) InsertReply(w http.ResponseWriter, r *http.Request) {
@@ -259,10 +287,54 @@ func (app *application) InsertReply(w http.ResponseWriter, r *http.Request) {
 	reply.CreatedAt = time.Now()
 	reply.UpdatedAt = time.Now()
 
-	_, err = app.DB.InsertReply(reply)
+	err = app.DB.InsertReply(reply)
 	if err != nil {
 		app.errorJSON(w, err)
 		return
 	}
 
+	resp := JSONResponse{
+		Error:   false,
+		Message: "reply inserted",
+	}
+
+	app.writeJSON(w, http.StatusAccepted, resp)
+}
+
+func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
+	var user models.User
+
+	err := app.readJSON(w, r, &user)
+	if err != nil {
+		app.errorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Check if the username is already taken
+	existingUser, err := app.DB.GetUserByUsername(user.Username)
+	if err == nil && existingUser != nil {
+		app.errorJSON(w, errors.New("username already taken"), http.StatusBadRequest)
+		return
+	}
+
+	// Hash the password before storing it in the database
+	err = user.HashPassword()
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	// Insert the new user into the database
+	err = app.DB.InsertUser(user)
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	resp := JSONResponse{
+		Error:   false,
+		Message: "user registered successfully",
+	}
+
+	app.writeJSON(w, http.StatusCreated, resp)
 }

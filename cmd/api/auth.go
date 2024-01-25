@@ -159,7 +159,3 @@ func (j *Auth) GetTokenFromHeaderAndVerify(w http.ResponseWriter, r *http.Reques
 
 	return token, claims, nil
 }
-
-func (j *Auth) GetUserIDFromToken(w http.ResponseWriter, r *http.Request) (int, error) {
-
-}
